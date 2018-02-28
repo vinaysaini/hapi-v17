@@ -22,6 +22,11 @@ var STATUS_MSG = {
             customMessage : 'Incorrect Password',
             type : 'INCORRECT_PASSWORD'
         },
+        ACCESS_DENIED: {
+            statusCode:401,
+            customMessage : 'You do not have permission for this organisation',
+            type : 'ACCESS_DENIED'
+        },
         DUPLICATE: {
             statusCode:400,
             customMessage : 'Duplicate Entry',

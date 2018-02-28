@@ -17,6 +17,7 @@
     "hapi-swagger": "^9.1.1",
     "inert": "^5.1.0",
     "joi": "^13.1.2",
+    "joi-objectid": "^2.0.0",
     "jsonwebtoken": "^8.1.1",
     "mongoose": "^5.0.6",
     "vision": "^5.3.1"

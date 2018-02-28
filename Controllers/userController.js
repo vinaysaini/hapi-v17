@@ -1,23 +1,41 @@
 'use strict';
 
-const SERVICE  		= require('../services');
+const SERVICE  		= require('../Services/Master');
 const ASYNC   		= require('async');
 const CONTROLLERS 	= require('../controllers');
 const CONFIG		= require('../config');
 const TokenManager = require('../Lib').TokenManager;
 const UniversalFunctions = require('../Utils/UniversalFunctions');
 
-const createUser = async function(payloadData, callback){
+const createUser = async function(request, callback){
 	var userData = {};
     try {
-        userData = await SERVICE.UserService.createUser(payloadData);
+        request.payload.organisations = [request.auth.artifacts.organisationId];
+        userData = await SERVICE.UserService.createUser(request.payload);
     } catch (err) {
+        console.log("err===",err);
         throw err;
     }
-    return payloadData;
+    var criteria = {
+        _id : request.auth.artifacts.organisationId
+    };
+    var setQuery = {
+        $push: {
+            users: [userData._id]
+        }
+    };
+    var options = {};
+    try {
+        await SERVICE.OrganisationService.updateOrganisation(criteria, setQuery, options);
+    } catch (err) {
+        console.log("err=====",err);
+        throw err;
+    }
+    return userData;
 }
 
 const loginUser = async function(payloadData, h){
+    console.log("payloadData====",payloadData);
 	var userData = {}, userFound = {}, successLogin = false, accessToken = null;
     try {
         var criteria = {
@@ -27,12 +45,16 @@ const loginUser = async function(payloadData, h){
         var option = {
             lean: true
         };
-        var result = await SERVICE.UserService.getUser(criteria, projection, option);
+        var populateQuery = {
+            path: 'organisations', select:"name dbName"
+        }
+        var result = await SERVICE.UserService.getPopulatesUser(criteria, projection, option, populateQuery);
         userFound = result && result[0] || null;
+        console.log("userFound=====",userFound);
     } catch (err) {
+        console.log("err=====",err);
         return h.internalError(err);
     }
-
     if (!userFound) {
         throw await CONFIG.CONSTANTS.STATUS_MSG.ERROR.INVALID_USER_PASS;
     } else {
@@ -66,13 +88,43 @@ const loginUser = async function(payloadData, h){
 }
 
 const signUp = async function(payloadData, callback){
+    var organisationData = {};
+    try {
+        var dataToSave = {
+            name : payloadData.organisationName
+        }
+        organisationData = await SERVICE.OrganisationService.createOrganisation(dataToSave);
+    } catch (err) {
+        throw err;
+    }
+    console.log("organisationData===",organisationData);
+
     var userData = {};
+    payloadData.organisations = [organisationData._id];
     try {
         userData = await SERVICE.UserService.createUser(payloadData);
     } catch (err) {
         throw err;
     }
-    return payloadData;
+    console.log("userData===",userData);
+
+    var criteria = {
+        _id : organisationData._id
+    };
+    var setQuery = {
+        $set: {
+            dbName: 'org_' + organisationData._id,
+            users: [userData._id]
+        }
+    };
+    var options = {};
+    try {
+        await SERVICE.OrganisationService.updateOrganisation(criteria, setQuery, options);
+    } catch (err) {
+        console.log("err=====",err);
+        throw err;
+    }
+    return userData;
 }
 
 const logout = async function(userData) {
@@ -95,11 +147,19 @@ const logout = async function(userData) {
     return {};
 }
 
-const getUsers = async function(){
+const getUsers = async function(request){
     var userData = {};
+    var criteria = {
+        organisations : {
+            $elemMatch : {
+                $in : [request.auth.artifacts.organisationId]
+            }
+        }
+    }
     try {
-        userData = await SERVICE.UserService.getUser({}, {accessToken:!1}, {});
+        userData = await SERVICE.UserService.getUser(criteria, {accessToken:!1, password:!1}, {});
     } catch (err) {
+        console.log("err=====",err);
         throw err;
     }
     return userData;
@@ -111,7 +171,7 @@ const getUserDetails = async function(userData, userId){
     }
     var userDetails = {};
     try {
-        userDetails = await SERVICE.UserService.getUser({_id: userId}, {accessToken:!1}, {});
+        userDetails = await SERVICE.UserService.getUser({_id: userId}, {accessToken:!1, password:!1}, {});
     } catch (err) {
         throw err;
     }

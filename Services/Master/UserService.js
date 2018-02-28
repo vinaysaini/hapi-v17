@@ -1,6 +1,6 @@
 'use strict';
 
-var Models = require('../Models');
+var Models = require('../../Models/Master');
 
 
 //Insert User in DB
@@ -21,8 +21,13 @@ var updateUser = async function (criteria, dataToSet, options) {
     return await Models.Users.findOneAndUpdate(criteria, dataToSet, options);
 };
 
+var getPopulatesUser = async function (query, projection, option, populateQuery) {
+	return await Models.Users.find(query, projection, option).populate(populateQuery).exec();
+};
+
 module.exports = {
 	createUser: createUser,
 	getUser: getUser,
-    updateUser: updateUser
+    updateUser: updateUser,
+    getPopulatesUser: getPopulatesUser
 };

@@ -2,7 +2,7 @@
 var Config = require('../Config');
 var Jwt = require('jsonwebtoken');
 var async = require('async');
-var Service = require('../Services');
+var Service = require('../Services/Master');
 
 
 var setToken = async function (tokenData) {

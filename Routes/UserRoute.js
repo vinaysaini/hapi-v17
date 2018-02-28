@@ -1,4 +1,4 @@
-'use strict';
+ 'use strict';
 var Controller = require('../Controllers');
 var CONFIG = require('../Config');
 var UniversalFunctions = require('../Utils/UniversalFunctions');
@@ -10,7 +10,7 @@ module.exports = [
 	    path: '/api/user',
 	    handler: async function (request, h) {
 	        try {
-                var data = await Controller.UserController.createUser(request.payload);
+                var data = await Controller.UserController.createUser(request);
                 return UniversalFunctions.sendSuccess(null, data);
             } catch (err) {
                 var errorResponse = UniversalFunctions.sendError(err);
@@ -28,7 +28,7 @@ module.exports = [
 	                email: Joi.string().email().required(),
 	                password: Joi.string().required()
 	            },
-                headers: UniversalFunctions.authorizationHeaderObj,
+                headers: UniversalFunctions.tenantAuthorizationHeaderObj,
 	            failAction: UniversalFunctions.failActionFunction
 	        },
 	        plugins: {
@@ -75,6 +75,7 @@ module.exports = [
                 var data = await Controller.UserController.signUp(request.payload);
                 return UniversalFunctions.sendSuccess(null, data);
             } catch (err) {
+                console.log("err=========",err);
                 var errorResponse = UniversalFunctions.sendError(err);
                 return h.response(errorResponse).code(errorResponse.statusCode);
             }
@@ -87,6 +88,7 @@ module.exports = [
                     firstName: Joi.string().required(),
                     lastName: Joi.string().required(),
                     email: Joi.string().email().required(),
+                    organisationName: Joi.string().required(),
                     password: Joi.string().required().min(5).trim(),
                 },
                 failAction: UniversalFunctions.failActionFunction
@@ -132,7 +134,7 @@ module.exports = [
         path: '/api/user',
         handler: async function (request, h) {
             try {
-                var data = await Controller.UserController.getUsers();
+                var data = await Controller.UserController.getUsers(request);
                 return UniversalFunctions.sendSuccess(null, data);
             } catch (err) {
                 var errorResponse = UniversalFunctions.sendError(err);
@@ -144,7 +146,7 @@ module.exports = [
             tags: ['api', 'user'],
             auth: 'UserAuth',
             validate: {
-                headers: UniversalFunctions.authorizationHeaderObj,
+                headers: UniversalFunctions.tenantAuthorizationHeaderObj,
                 failAction: UniversalFunctions.failActionFunction
             },
             plugins: {
@@ -159,7 +161,6 @@ module.exports = [
         path: '/api/user/{id}',
         handler: async function (request, h) {
             var userData = request.auth.artifacts.userData;
-            console.log("request===",request);
             var userId = request.params.id;
             try {
                 var data = await Controller.UserController.getUserDetails(userData, userId);

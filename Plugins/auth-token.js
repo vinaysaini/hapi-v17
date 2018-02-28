@@ -20,7 +20,7 @@ exports.register = async function(server, options){
             }
             if (response && response.userData) {
                 var isValid = true;
-                var artifacts = { userData: response.userData };
+                var artifacts = { userData: response.userData, organisationId: request.headers.organisation};
             } else {
                 isValid = false;
                 artifacts = {};

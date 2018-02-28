@@ -1,3 +1,4 @@
 module.exports = {
-    TokenManager : require('./TokenManager')
+    TokenManager : require('./TokenManager'),
+    DBManager : require('./DBManager')
 };

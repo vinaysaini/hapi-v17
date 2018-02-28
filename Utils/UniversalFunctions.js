@@ -3,8 +3,6 @@ var Boom = require('boom');
 var CONFIG = require('../Config');
 var Joi = require('joi');
 
-
-
 var failActionFunction = function (request, reply, error) {
     var customErrorMessage = '';
     if (error.output.payload.message.indexOf("[") > -1) {
@@ -89,10 +87,22 @@ var authorizationHeaderObj = Joi.object({
     authorization: Joi.string().required()
 }).unknown();
 
+var tenantAuthorizationHeaderObj = Joi.object({
+    authorization: Joi.string().required(),
+    organisation: Joi.string().required()
+}).unknown();
+
+var checkObjectId = function (id) {
+    var hex = /[0-9A-Fa-f]{6}/g;
+    return (hex.test(id)&&(id.length===24))
+}
+
 module.exports = {
     failActionFunction: failActionFunction,
     sendError: sendError,
     sendSuccess: sendSuccess,
     deleteUnnecessaryUserData: deleteUnnecessaryUserData,
-    authorizationHeaderObj: authorizationHeaderObj
+    authorizationHeaderObj: authorizationHeaderObj,
+    tenantAuthorizationHeaderObj: tenantAuthorizationHeaderObj,
+    checkObjectId: checkObjectId
 };
